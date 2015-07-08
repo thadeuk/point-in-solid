@@ -1,6 +1,6 @@
 CC = g++
 CFLAGS = -I.
-DEPS =  geometrics.h world.h obj_file.h main.h triangle.h rectangle.h polygon.h 
+DEPS =  world.h main.h 
 OBJ = $(DEPS:.h=.o)
 
 %.o: %.cpp
