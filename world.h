@@ -19,12 +19,10 @@ public:
     void add_rectangle(int p1_idx, int p2_idx, int p3_idx, int p4_idx);
 
     void create_world();
-    void run();
-    void print_xml();
     int point_in_polygon(Point p, Point v);
     void normalize_points(double max_world);
+    Point get_random_point();
 
-private:
     int grid_max[3]; // x, y, z
     int grid_min[3];
 

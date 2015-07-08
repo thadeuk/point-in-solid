@@ -41,6 +41,7 @@ void World::add_rectangle(int p1_idx, int p2_idx, int p3_idx, int p4_idx)
 
 void World::create_world()
 {
+    srand(time(NULL));
     grid_max[0] = grid_max[1] = grid_max[2] = -99999;
     grid_min[0] = grid_min[1] = grid_min[2] = 99999;
     for (int i = 0; i < points.size(); i++) {
@@ -82,7 +83,7 @@ int World::point_in_polygon(Point p, Point v)
     return (intersections&1) ? 2 : 0; // odd number
 }
 
-Point get_random_point()
+Point World::get_random_point()
 {
     double x = ((double) rand()/ (RAND_MAX))*2-1;
     double y = ((double) rand()/ (RAND_MAX))*2-1;
@@ -90,32 +91,6 @@ Point get_random_point()
     return Point(x, y, z);
 }
 
-void World::print_xml()
-{
-    int point_numbers = 0;
-    int repeateds = 0;
-    int ret;
-    Point v1(1, 0, 0);
-    Point v2(0, 1, 0);
-    Point v3(0, 0, 1);
-
-    for (int x = grid_min[0]; x <= grid_max[0]; x++) {
-        for (int y = grid_min[1]; y <= grid_max[1]; y++) {
-            for (int z = grid_min[2]; z <= grid_max[2]; z++) {
-                Point p1(x,y,z);
-        //        p1.print_point();
-                while ((ret = point_in_polygon(p1, get_random_point() )) == 1) repeateds++;// printf("Trying again...\n");
-            //    ret = point_in_polygon(p1, v2);
-                if (ret == 2) {
-                    point_numbers++;
-                    printf("<block position=\"%d,%d,%d\" color=\"255,64,255\"/>\n",x, y, z); 
-                }
-            }
-        }
-    }
-    printf("count = %d\n", point_numbers);
-    printf("repeateds = %d\n", repeateds);
-}
 
 void World::normalize_points(double max_world)
 {
@@ -170,18 +145,4 @@ void World::normalize_points(double max_world)
     for (int i = 0; i < polygons.size(); i++) {
         polygons[i]->get_normal();
     }
-}
-
-void World::run()
-{
-    create_world();
-
-    srand(time(NULL));
-    print_xml();
-    Point p(1, 0, 9);
-    Point v(0, 1, 0);
-    //cout << point_in_polygon(p, v) << endl;
-    //cout << polygons[398].ray_intersect(p, v) << endl;
-    //polygons[398].get_intersection_point(p, v).print_point();
-    
 }

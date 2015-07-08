@@ -121,6 +121,32 @@ add_concave_form(World &w)
 
 }
 
+void print_xml(World &w)
+{
+    int point_numbers = 0;
+    int repeateds = 0;
+    int ret;
+    Point v1(1, 0, 0);
+    Point v2(0, 1, 0);
+    Point v3(0, 0, 1);
+
+    for (int x = w.grid_min[0]; x <= w.grid_max[0]; x++) {
+        for (int y = w.grid_min[1]; y <= w.grid_max[1]; y++) {
+            for (int z = w.grid_min[2]; z <= w.grid_max[2]; z++) {
+                Point p1(x,y,z);
+                while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1) repeateds++;
+                if (ret == 2) {
+                    point_numbers++;
+                    printf("<block position=\"%d,%d,%d\" color=\"255,64,255\"/>\n",x, y, z); 
+                }
+            }
+        }
+    }
+    printf("count = %d\n", point_numbers);
+    printf("repeateds = %d\n", repeateds);
+}
+
+
 int
 main()
 {
@@ -133,7 +159,8 @@ main()
     //Obj_File obj("obj/cup2.obj");
     Obj_File obj("obj/example005.obj");
     w.normalize_points(40); 
-    w.run();
+    w.create_world();
+    print_xml(w);
     /*
     Point p0(0,0,0);
     Point p1(0,1,0);

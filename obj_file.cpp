@@ -42,16 +42,7 @@ void Obj_File::read_f_line(string line) {
         World::polygons.push_back(t);
     }
     else {
-        if (std::count(line.begin(), line.end(), '/') == 3) {
-            sscanf(line.c_str(), "%c %d/%d %d/%d %d/%d", &first, &v0a, &v0b, &v1a, &v1b, &v2a, &v2b);
-            Triangle *t = new Triangle(v0a-1, v1a-1, v2a-1);
-            World::polygons.push_back(t);
-        }
-        else {
-            sscanf(line.c_str(), "%c %d/%d %d/%d %d/%d %d/%d", &first, &v0a, &v0b, &v1a, &v1b, &v2a, &v2b, &v3a, &v3b);
-            Rectangle *r = new Rectangle(v0a-1, v1a-1, v2a-1, v3a-1);
-            World::polygons.push_back(r);
-        }
+        printf("Unsupported obj file\n");
     }
 
 }
