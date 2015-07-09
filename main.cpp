@@ -121,29 +121,67 @@ add_concave_form(World &w)
 
 }
 
-void print_xml(World &w)
+/*
+ * Return:
+ * 0 outside
+ * 1 inside
+ * 2 undefined
+ */
+int cube_test(World &w, double x, double y, double z, double side_size) {
+    int ret;
+    int status = -1;
+
+    for (int i = 0; i <= 1; i++) {
+       for (int j = 0; j <= 1; j++) {
+          for (int k = 0; k <= 1; k++) {
+              Point p1(x+side_size*i, y+side_size*j, z + side_size*k);
+              while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1);
+              if (ret == 0) {
+                  if (status == -1 || status == 0) {
+                    status = 0;
+                  }
+                  else {
+                      return 2;
+                  }
+              }
+              if (ret == 2) {
+                  if (status == -1 || status == 1) {
+                      status = 1;
+                  }
+                  else {
+                      return 2;
+                  }
+              }
+          }
+       }
+    } 
+    return status;
+}
+
+void run(World &w)
 {
     int point_numbers = 0;
-    int repeateds = 0;
+    int outside = 0;
+    int inside = 0;
+    int undefined = 0;
     int ret;
-    Point v1(1, 0, 0);
-    Point v2(0, 1, 0);
-    Point v3(0, 0, 1);
+    double side_size = 0.2;
 
-    for (int x = w.grid_min[0]; x <= w.grid_max[0]; x++) {
-        for (int y = w.grid_min[1]; y <= w.grid_max[1]; y++) {
-            for (int z = w.grid_min[2]; z <= w.grid_max[2]; z++) {
-                Point p1(x,y,z);
-                while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1) repeateds++;
-                if (ret == 2) {
-                    point_numbers++;
-                    printf("<block position=\"%d,%d,%d\" color=\"255,64,255\"/>\n",x, y, z); 
-                }
+    for (double x = 0; x < 1; x += side_size) {
+        printf("Feedback, x update\n");
+        for (double y = 0; y < 1; y += side_size) {
+            for (double z = 0; z < 1; z += side_size) {
+                ret = cube_test(w, x, y, z, side_size);
+                if (ret == 0)
+                    outside++;
+                if (ret == 1)
+                    inside++;
+                if (ret == 2)
+                    undefined++;
             }
         }
     }
-    printf("count = %d\n", point_numbers);
-    printf("repeateds = %d\n", repeateds);
+    printf("Outside cubes = %d\nInside cubes = %d\nUndefined cubes = %d\n", outside, inside, undefined);
 }
 
 
@@ -152,25 +190,11 @@ main()
 {
     World w;
 
-    //add_cube(w);
-    //add_concave_form(w);
-    //Obj_File obj("obj/diamond.obj");
-    //Obj_File obj("obj/humanoid_tri.obj");
-    //Obj_File obj("obj/cup2.obj");
-    Obj_File obj("obj/example005.obj");
-    w.normalize_points(40); 
+    Obj_File obj("obj/catoms.obj");
+    //w.normalize_points(40); 
     w.create_world();
-    print_xml(w);
-    /*
-    Point p0(0,0,0);
-    Point p1(0,1,0);
-    Point x(1E-15, 1E-15, 1E-15);
-    w.add_triangle(Point(0,0,0), Point(0,1,0), Point (1,1,0));
-    cout << "in border ? " << w.triangles[0].is_in_border(x) << endl;
-    cout << "contains point ? " << w.triangles[0].contains_point(Point(0+1E-15,1E-15,1E-11)) << endl;
-    cout << "ray_intersect ? " << w.triangles[0].ray_intersect(Point(0+1E-15,1E-10,-0.0001), Point(1, 1, 1)) << endl;
-    */
-    //cout << w.triangles[0].is_between_points(x, p0, p1) << endl;
+
+    run(w);
 
     return 0;
 }
