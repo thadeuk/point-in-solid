@@ -14,16 +14,25 @@ public:
     double size_x;
     double size_y;
     double size_z;
+    bool center;
 
-    Cube (double _size_x, double _size_y, double _size_z) : size_x(_size_x), size_y(_size_y), size_z(_size_z) {};
+    Cube (double _size_x, double _size_y, double _size_z) : size_x(_size_x), size_y(_size_y), size_z(_size_z), center(false){};
+
+    Cube (double _size_x, double _size_y, double _size_z, bool _center) : size_x(_size_x), size_y(_size_y), size_z(_size_z), center(_center){};
 
     void print() {
         cout << "CUBE " << size_x << ' ' << size_y << ' ' << size_z << endl;
     }
 
     bool isInside(Point initial_p, Point p) {
-        if ((p.x - initial_p.x) < size_x && (p.y - initial_p.y) < size_y && (p.z - initial_p.z) < size_z)
-            return true;
+        if (center) {
+            if (fabs(p.x - initial_p.x) < size_x/2 && fabs(p.y - initial_p.y) < size_y/2 && fabs(p.z - initial_p.z) < size_z/2)
+                return true;
+        }
+        else {
+            if ((p.x - initial_p.x) < size_x && (p.y - initial_p.y) < size_y && (p.z - initial_p.z) < size_z)
+                return true;
+        }
         return false;
     }
 };

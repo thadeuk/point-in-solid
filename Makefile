@@ -1,13 +1,13 @@
 CC = g++
 CFLAGS = -I.
-DEPS =  world.h main.h 
+DEPS =  geometrics.h
 OBJ = $(DEPS:.h=.o)
 
 %.o: %.cpp
 	$(CC) -c -g -o $@ $< $(CFLAGS)
 
 install: $(OBJ)
-	$(CC) -o m $^ -std=c++11 -lm -g
+	$(CC) -o p parser.cpp $^ -std=c++11 -lm -g
 
 
 clean:

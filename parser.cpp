@@ -81,7 +81,7 @@ public:
 
         root.print_tree();
 
-        Point initial_point(0,0,0);
+        Point initial_point(15,15,15);
         for (int i = 0; i < 30; i++) {
             for (int j = 0; j < 30; j++) {
                 for (int k = 0; k < 30; k++) {
