@@ -37,6 +37,25 @@ public:
     }
 };
 
+class Sphere : public Shape3D
+{
+public:
+    double radius;
+    Sphere (double _radius) : radius(_radius){};
+
+    void print() {
+        cout << "SPHERE " << radius << endl;
+    }
+
+    bool isInside(Point initial_p, Point p) {
+    //    double dist = sqrt(pow(p.x-initial_p.x, 2) + pow(p.y-initial_p.y, 2) + pow(p.z-initial_p.z, 2));
+        double dist = 40;
+        if (dist < radius)
+            return true;
+        return false;
+    }
+};
+
 class BoolOperator
 {
 public:

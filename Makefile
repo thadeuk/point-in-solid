@@ -11,4 +11,4 @@ install: $(OBJ)
 
 
 clean:
-	rm *.o m
+	rm -rf *.o p

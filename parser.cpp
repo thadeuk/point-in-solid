@@ -69,7 +69,15 @@ public:
         Node cube7(node_t::shape);
         cube7.value = new Cube(5, 5, 25);
 
-        root.add_child(c1);
+        Node cube11(node_t::shape);
+        cube1.value = new Cube(30, 30, 30, true);
+
+        Node sphere1(node_t::shape);
+        sphere1.value = new Sphere(20);
+
+        root.add_child(cube11);
+        root.add_child(cube5);
+        /*root.add_child(c1);
         c1.add_child(cube1);
         c1.add_child(cube2);
         c1.add_child(cube3);
@@ -78,6 +86,7 @@ public:
         c2.add_child(cube5);
         c2.add_child(cube6);
         c2.add_child(cube7);
+        */
 
         root.print_tree();
 
