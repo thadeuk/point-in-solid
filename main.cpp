@@ -66,7 +66,7 @@ bool AreEqual(double a, double b)
 void run_small(World &w, double side_size_big, double initial_point_x, double initial_point_y, double initial_point_z)
 {
     int ret;
-    double side_size = 0.0025;
+    double side_size = 0.005;
 
     for (double x = initial_point_x; IsLess(x, initial_point_x+side_size_big); x += side_size) {
         for (double y = initial_point_y; IsLess(y, initial_point_y + side_size_big); y += side_size) {
@@ -94,7 +94,7 @@ void run(World &w)
 
 
     int ret;
-    double side_size = 0.005;
+    double side_size = 0.01;
     double initial_point = -0.5;
     double end_point = 0.5;
     int t = 0;
@@ -138,7 +138,7 @@ main()
 {
     World w;
 
-    Obj_File obj("obj/catoms.obj");
+    Obj_File obj("obj/catoms_v2.obj");
     w.create_world();
 
     run(w);
