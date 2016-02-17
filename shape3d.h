@@ -1,10 +1,12 @@
 #include <iostream>
+#include <vector>
 #include "geometrics.h"
 
 using namespace std;
 
 class Shape3D
 {
+public:
     virtual bool isInside(Point initial_p, Point p) = 0;
 };
 
@@ -75,5 +77,38 @@ public:
             case bool_operator_t::bool_intersection:
                 cout << "INTERSECTION" << endl;
         }
+    }
+};
+
+enum class node_t {bool_op, shape};
+
+class Node
+{
+public:
+    node_t type;
+    void *value;
+    vector<Node *> vchildren;
+
+    Node() {};
+    Node(node_t _type) : type(_type) {};
+    void add_child(Node &n) {
+        vchildren.push_back(&n);
+    }
+
+    void print_tree() {
+        switch(type) {
+            case node_t::bool_op:
+                cout << "bool operator!" << endl;
+                break;
+            case node_t::shape:
+                cout << "shape!" << endl;
+                break;
+        }
+
+        cout << "children = " << vchildren.size() << endl;
+        for (int i = 0; i < vchildren.size(); i++) {
+            vchildren[i]->print_tree();
+        }
+
     }
 };

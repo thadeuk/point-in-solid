@@ -4,38 +4,6 @@
 
 using namespace std;
 
-enum class node_t {group, bool_op, shape};
-
-class Node
-{
-public:
-    node_t type;
-    void *value;
-    vector<Node *> vchildren;
-
-    Node() {};
-    Node(node_t _type) : type(_type) {};
-    void add_child(Node &n) {
-        vchildren.push_back(&n);
-    }
-
-    void print_tree() {
-        switch(type) {
-            case node_t::bool_op:
-                cout << "bool operator!" << endl;
-                break;
-            case node_t::shape:
-                cout << "shape!" << endl;
-                break;
-        }
-
-        cout << "children = " << vchildren.size() << endl;
-        for (int i = 0; i < vchildren.size(); i++) {
-            vchildren[i]->print_tree();
-        }
-
-    }
-};
 
 class Parse
 {
@@ -70,13 +38,13 @@ public:
         cube7.value = new Cube(5, 5, 25);
 
         Node cube11(node_t::shape);
-        cube1.value = new Cube(30, 30, 30, true);
+        cube11.value = new Cube(30, 30, 30, true);
 
         Node sphere1(node_t::shape);
         sphere1.value = new Sphere(20);
 
         root.add_child(cube11);
-        root.add_child(cube5);
+        root.add_child(sphere1);
         /*root.add_child(c1);
         c1.add_child(cube1);
         c1.add_child(cube2);
@@ -89,39 +57,23 @@ public:
         */
 
         root.print_tree();
-
-        Point initial_point(15,15,15);
-        for (int i = 0; i < 30; i++) {
-            for (int j = 0; j < 30; j++) {
-                for (int k = 0; k < 30; k++) {
-                    if (check_point(&root, initial_point, Point(i, j, k))) {
-                       printf("<block position=\"%d,%d,%d\" color=\"255,64,255\"/>\n",i, j, k); 
-                    }
-                }
-            }
-        }
     }
 
     bool check_point(Node *n, Point initial_point, Point p) {
         if (n->type == node_t::shape) {
-            Cube *c = static_cast<Cube *>(n->value);
-            /*
-            c->print();
-            if (c->isInside(initial_point, p))
-                cout << "is inside" << endl;
-            else 
-                cout << "not inside";
-                */
-            return c->isInside(initial_point, p);
+            Shape3D *shape = static_cast<Shape3D *>(n->value);
+            return shape->isInside(initial_point, p);
         }
         if (n->type == node_t::bool_op) {
             BoolOperator* b_op = static_cast<BoolOperator *>(n->value);
+
             if (b_op->my_type == BoolOperator::bool_operator_t::bool_union) {
                 for (int i = 0; i < n->vchildren.size(); i++) {
                     if (check_point(n->vchildren[i], initial_point, p))
                         return true;
                 }
             }
+
             if (b_op->my_type == BoolOperator::bool_operator_t::bool_difference) {
                 if (n->vchildren.size() > 1) {
                     if (check_point(n->vchildren[0], initial_point, p)) {
@@ -132,8 +84,9 @@ public:
                         return true;
                     }
                 }
-                return false;
             }
+
+            return false;
         }
     }
 
