@@ -3,56 +3,13 @@
 #include <limits>
 #include <algorithm>
 #include <fstream>
-#include <thread>
-#include <atomic>
+#include <list>
 #include "world.h"
 #include "obj_file.h"
 #define EPSILON 1E-5
+#define INF 100000
 
 using namespace std;
-
-atomic<int> small_outside(0);
-atomic<int> small_inside(0);
-atomic<int> small_undefined(0);
-vector<thread> threads;
-
-/*
- * Return:
- * 0 outside
- * 1 inside
- * 2 undefined
- */
-int cube_test(World &w, double x, double y, double z, double side_size) {
-    int ret;
-    int status = -1;
-
-    for (int i = 0; i <= 1; i++) {
-       for (int j = 0; j <= 1; j++) {
-          for (int k = 0; k <= 1; k++) {
-              Point p1(x+side_size*i, y+side_size*j, z + side_size*k);
-              while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1);
-              if (ret == 0) {
-                  if (status == -1 || status == 0) {
-                    status = 0;
-                  }
-                  else {
-                      return 2;
-                  }
-              }
-              if (ret == 2) {
-                  if (status == -1 || status == 1) {
-                      status = 1;
-                  }
-                  else {
-                      return 2;
-                  }
-              }
-          }
-       }
-    } 
-    return status;
-}
-
 bool IsLess(double a, double b)
 {
     return b - a > EPSILON;
@@ -63,28 +20,111 @@ bool AreEqual(double a, double b)
     return fabs(a - b) < EPSILON;
 }
 
-void run_small(World &w, double side_size_big, double initial_point_x, double initial_point_y, double initial_point_z)
+double lessd(double a, double b)
 {
-    int ret;
-    double side_size = 0.005;
-
-    for (double x = initial_point_x; IsLess(x, initial_point_x+side_size_big); x += side_size) {
-        for (double y = initial_point_y; IsLess(y, initial_point_y + side_size_big); y += side_size) {
-            for (double z = initial_point_z; IsLess(z, initial_point_z + side_size_big); z += side_size) {
-                ret = cube_test(w, x, y, z, side_size);
-                if (ret == 0) {
-                    small_outside++;
-                }
-                if (ret == 1) {
-                    small_inside++;
-                }
-                if (ret == 2) {
-                    small_undefined++;
-                }
-            }
-        }
-    }
+    a < b ? a : b;
 }
+
+double greaterd(double a, double b)
+{
+    a > b ? a : b;
+}
+
+class Brick
+{
+
+public:
+    double lowerx, lowery, lowerz;
+    double upperx, uppery, upperz;
+    Brick(double x, double y, double z, double side_size) {
+        lowerx = x;
+        lowery = y;
+        lowerz = z;
+        upperx = x + side_size;
+        uppery = y + side_size;
+        upperz = z + side_size;
+    }
+
+    Brick(const double& lx, const double& ly, const double& lz, const double& ux, const double& uy, const double& uz) {
+        lowerx = lx;
+        lowery = ly;
+        lowerz = lz;
+        upperx = ux;
+        uppery = uy;
+        upperz = uz;
+    }
+
+    void printCSG() {
+        cout << "translate([" << lowerx << "," << lowery << "," << lowerz << "])";
+        cout << "\tcube(["<< upperx-lowerx << "," << uppery-lowery << "," << upperz-lowerz << "]);" << endl;
+    }
+    void print() {
+        cout << "(" << lowerx << "," << lowery << "," << lowerz << "),(" << upperx << "," << uppery << "," << upperz << ")" << endl;
+    }
+    void printRaw() {
+        cout << lowerx << " " << lowery << " " << lowerz << endl;
+        cout << upperx << " " << uppery << " " << upperz << endl;
+    }
+
+    bool equal_x(Brick &b) {
+        if (AreEqual(lowerx, b.lowerx) && AreEqual(upperx, b.upperx)) return true;
+        return false;
+    }
+    bool equal_y(Brick &b) {
+        if (AreEqual(lowery, b.lowery) && AreEqual(uppery, b.uppery)) return true;
+        return false;
+    }
+    bool equal_z(Brick &b) {
+        if (AreEqual(lowerz, b.lowerz) && AreEqual(upperz, b.upperz)) return true;
+        return false;
+    }
+
+    bool equal_xy(Brick &b) {
+        if (equal_x(b) && equal_y(b))
+            return true;
+        return false;
+    }
+    bool equal_xz(Brick &b) {
+        if (equal_x(b) && equal_z(b))
+            return true;
+        return false;
+    }
+    bool equal_yz(Brick &b) {
+        if (equal_y(b) && equal_z(b))
+            return true;
+        return false;
+    }
+
+    bool share_x_face(Brick &b) {
+        if ((AreEqual(upperx, b.lowerx) || AreEqual(lowerx, b.upperx)) && equal_yz(b))
+            return true;
+        return false;
+    }
+
+    bool share_y_face(Brick &b) {
+        if ((AreEqual(uppery, b.lowery) || AreEqual(lowery, b.uppery)) && equal_xz(b))
+            return true;
+        return false;
+    }
+
+    bool share_z_face(Brick &b) {
+        if ((AreEqual(upperz, b.lowerz) || AreEqual(lowerz, b.upperz)) && equal_xy(b))
+            return true;
+        return false;
+    }
+
+    bool is_inside(Brick &b) {
+        if (lowerx >= b.lowerx && upperx <= b.upperx &&
+                lowery >= b.lowery && uppery <= b.uppery &&
+                lowerz >= b.lowerz && upperz <= b.upperz)
+            return true;
+        return false;
+    }
+    
+};
+
+list<Brick> bricks;
+
 
 void run(World &w)
 {
@@ -94,43 +134,34 @@ void run(World &w)
 
 
     int ret;
-    double side_size = 0.01;
-    double initial_point = -0.5;
-    double end_point = 0.5;
+    double side_size = 2.01;
+    double initial_point = -35;
+    double end_point = 35;
     int t = 0;
 
+    double min_xyz[3] = {INF, INF, INF};
+    double max_xyz[3] = {-INF, -INF, -INF};
+
     for (double x = initial_point; IsLess(x, end_point); x += side_size) {
-        printf("Feedback, x update. x = %lf\n", x);
-        if (threads.size() - t > 100) {
-            for (; t < threads.size(); t++) {
-                threads[t].join();
-            }
-        }
         for (double y = initial_point; IsLess(y, end_point); y += side_size) {
             for (double z = initial_point; IsLess(z, end_point); z += side_size) {
-                ret = cube_test(w, x, y, z, side_size);
-                if (ret == 0)
-                    outside++;
-                if (ret == 1) {
-                    inside++;
-                }
+                Point p(x+side_size/2., y+side_size/2., z + side_size/2.);
+                while ((ret = w.point_in_polygon(p, w.get_random_point() )) == 1);
                 if (ret == 2) {
-                    undefined++;
-                    threads.push_back(thread(run_small, ref(w), side_size, x, y, z));
-                    //run_small(w, side_size, x, y, z);
+                    if (min_xyz[0] > x) min_xyz[0] = x;
+                    if (min_xyz[1] > y) min_xyz[1] = y;
+                    if (min_xyz[2] > z) min_xyz[2] = z;
+                    if (max_xyz[0] < x+side_size) max_xyz[0] = x+side_size;
+                    if (max_xyz[1] < y+side_size) max_xyz[1] = y+side_size;
+                    if (max_xyz[2] < z+side_size) max_xyz[2] = z+side_size;
+                    bricks.push_back(Brick(x, y, z, side_size));    
                 }
+                t++;
             }
         }
     }
-    printf("Waiting...\n");
-    for (; t < threads.size(); t++) {
-        threads[t].join();
-    }
-
-    //for_each(threads.begin(), threads.end(),
-    //                                std::mem_fn(&thread::join));
-    printf("Inside cubes = %d\nOutside cubes = %d\nUndefined cubes = %d\n", inside, outside, undefined);
-    printf("Small inside cubes = %d\nSmall outside cubes = %d\nSmall undefined cubes = %d\n", small_inside.load(memory_order_relaxed), small_outside.load(memory_order_relaxed), small_undefined.load(memory_order_relaxed));
+    cout << "MIN = " << min_xyz[0] << ", " << min_xyz[1] << ", " << min_xyz[2] << endl;
+    cout << "MAX = " << max_xyz[0] << ", " << max_xyz[1] << ", " << max_xyz[2] << endl;
 }
 
 int
@@ -138,10 +169,60 @@ main()
 {
     World w;
 
-    Obj_File obj("obj/catoms_v2.obj");
+    Obj_File obj("obj/cup-high.obj");
     w.create_world();
 
     run(w);
+    int initial_size_bricks = bricks.size();
+
+    cout << bricks.size() << endl;
+    for (auto it = bricks.begin(); it != bricks.end(); it++) {
+        for (auto it2 = bricks.begin(); it2 != bricks.end(); it2++) {
+            if (it == it2) continue;
+
+            if ((*it).share_x_face(*it2)) {
+                Brick b(min(it->lowerx, it2->lowerx), it->lowery, it->lowerz, max(it->upperx, it2->upperx), it->uppery, it->upperz);
+                bricks.erase(it);
+                bricks.erase(it2);
+                bricks.push_back(b);
+                it = bricks.begin();
+                it2 = bricks.begin();
+            }
+            else if ((*it).share_y_face(*it2)) {
+                Brick b(it->lowerx, min(it->lowery, it2->lowery), it->lowerz, it->upperx, max(it->uppery, it2->uppery), it->upperz);
+                bricks.erase(it);
+                bricks.erase(it2);
+                bricks.push_back(b);
+                it = bricks.begin();
+                it2 = bricks.begin();
+            }
+            else if ((*it).share_z_face(*it2)) {
+                Brick b(it->lowerx, it->lowery, min(it->lowerz, it2->lowerz), it->upperx, it->uppery, max(it->upperz, it2->upperz));
+                bricks.erase(it);
+                bricks.erase(it2);
+                bricks.push_back(b);
+                it = bricks.begin();
+                it2 = bricks.begin();
+            }
+            else if ((*it).is_inside(*it2)) {
+                it = bricks.erase(it);
+            }
+        }
+    }
+    /*
+    for (int i = 0; i < bricks.size(); i++) {
+        bricks[i].print();
+    }
+    */
+    for (auto it = bricks.begin(); it != bricks.end(); it++) {
+        it->printRaw();
+    }
+    for (auto it = bricks.begin(); it != bricks.end(); it++) {
+        it->printCSG();
+    }
+    cout << initial_size_bricks << endl;
+    cout << bricks.size() << endl;
+
 
     return 0;
 }
