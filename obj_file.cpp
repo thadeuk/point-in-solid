@@ -42,7 +42,11 @@ void Obj_File::read_f_line(string line) {
         World::polygons.push_back(t);
     }
     else {
-        printf("Unsupported obj file\n");
+        sscanf(line.c_str(), "%c %d//%*d %d//%*d %d//%*d", &first, &v0a, &v1a, &v2a);
+        Triangle *t = new Triangle(v0a-1, v1a-1, v2a-1);
+        World::polygons.push_back(t);
+
+//        printf("Unsupported obj file\n");
     }
 
 }

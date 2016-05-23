@@ -5,132 +5,50 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <omp.h>
 #include "world.h"
 #include "obj_file.h"
 #define EPSILON 1E-5
 
 using namespace std;
 
-atomic<int> small_outside(0);
-atomic<int> small_inside(0);
-atomic<int> small_undefined(0);
-vector<thread> threads;
+const float M_SQRT2_2 = M_SQRT2*.5;
 
-/*
- * Return:
- * 0 outside
- * 1 inside
- * 2 undefined
- */
-int cube_test(World &w, double x, double y, double z, double side_size) {
+void print_xml(World &w)
+{
+    int point_numbers = 0;
+    int repeateds = 0;
     int ret;
-    int status = -1;
+    Point p1;
+    
+    cout << "<?xml version=\"1.0\" standalone=\"no\" ?>"<< endl;
+    cout << "<world gridSize=\"200,200,200\" windowSize=\"1800,900\" maxSimulationTime=\"5 mn\">" << endl;
+  	cout << "<camera target=\"200,200,200\" directionSpherical=\"0,38," << 2000 << "\" angle=\"50\" far=\"" << 2000*2 << "\"/>" << endl;
+  	cout << "<spotlight target=\"200,200,200\" directionSpherical=\"-30,50,2000\" angle=\"45\"/>" << endl;
+  	cout << "<blockList color=\"128,128,128\" blocksize=\"10.0,10.0,10.0\">" << endl;
 
-    for (int i = 0; i <= 1; i++) {
-       for (int j = 0; j <= 1; j++) {
-          for (int k = 0; k <= 1; k++) {
-              Point p1(x+side_size*i, y+side_size*j, z + side_size*k);
-              while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1);
-              if (ret == 0) {
-                  if (status == -1 || status == 0) {
-                    status = 0;
-                  }
-                  else {
-                      return 2;
-                  }
-              }
-              if (ret == 2) {
-                  if (status == -1 || status == 1) {
-                      status = 1;
-                  }
-                  else {
-                      return 2;
-                  }
-              }
-          }
-       }
-    } 
-    return status;
-}
-
-bool IsLess(double a, double b)
-{
-    return b - a > EPSILON;
-}
-
-bool AreEqual(double a, double b)
-{
-    return fabs(a - b) < EPSILON;
-}
-
-void run_small(World &w, double side_size_big, double initial_point_x, double initial_point_y, double initial_point_z)
-{
-    int ret;
-    double side_size = 0.005;
-
-    for (double x = initial_point_x; IsLess(x, initial_point_x+side_size_big); x += side_size) {
-        for (double y = initial_point_y; IsLess(y, initial_point_y + side_size_big); y += side_size) {
-            for (double z = initial_point_z; IsLess(z, initial_point_z + side_size_big); z += side_size) {
-                ret = cube_test(w, x, y, z, side_size);
-                if (ret == 0) {
-                    small_outside++;
+    for (int x = w.grid_min[0]; x <= w.grid_max[0]; x++) {
+        for (int y = w.grid_min[1]; y <= w.grid_max[1]; y++) {
+            for (int z = w.grid_min[2]; z <= w.grid_max[2]; z++) {
+                p1.z = z*M_SQRT2_2+0.5;
+                if (z%2) {
+                    p1.x = x+1.0;
+                    p1.y = y+1.0;
                 }
-                if (ret == 1) {
-                    small_inside++;
+                else {
+                    p1.x = x+0.5;
+                    p1.y = y+0.5;
                 }
+                while ((ret = w.point_in_polygon(p1, w.get_random_point() )) == 1) repeateds++;
                 if (ret == 2) {
-                    small_undefined++;
+                    point_numbers++;
+                    printf("<block position=\"%d,%d,%d\" color=\"0,0,255\"/>\n",x-w.grid_min[0], y-w.grid_min[1], z-w.grid_min[2]); 
                 }
             }
         }
     }
-}
-
-void run(World &w)
-{
-    int outside = 0;
-    int inside = 0;
-    int undefined = 0;
-
-
-    int ret;
-    double side_size = 0.01;
-    double initial_point = -0.5;
-    double end_point = 0.5;
-    int t = 0;
-
-    for (double x = initial_point; IsLess(x, end_point); x += side_size) {
-        printf("Feedback, x update. x = %lf\n", x);
-        if (threads.size() - t > 100) {
-            for (; t < threads.size(); t++) {
-                threads[t].join();
-            }
-        }
-        for (double y = initial_point; IsLess(y, end_point); y += side_size) {
-            for (double z = initial_point; IsLess(z, end_point); z += side_size) {
-                ret = cube_test(w, x, y, z, side_size);
-                if (ret == 0)
-                    outside++;
-                if (ret == 1) {
-                    inside++;
-                }
-                if (ret == 2) {
-                    undefined++;
-                    threads.push_back(thread(run_small, ref(w), side_size, x, y, z));
-                    //run_small(w, side_size, x, y, z);
-                }
-            }
-        }
-    }
-    printf("Waiting...\n");
-    for (; t < threads.size(); t++) {
-        threads[t].join();
-    }
-
-    //for_each(threads.begin(), threads.end(),
-    //                                std::mem_fn(&thread::join));
-    printf("Inside cubes = %d\nOutside cubes = %d\nUndefined cubes = %d\n", inside, outside, undefined);
-    printf("Small inside cubes = %d\nSmall outside cubes = %d\nSmall undefined cubes = %d\n", small_inside.load(memory_order_relaxed), small_outside.load(memory_order_relaxed), small_undefined.load(memory_order_relaxed));
+    cout << "</blockList>" << endl;
+    cout << "</world>" << endl;
 }
 
 int
@@ -138,10 +56,10 @@ main()
 {
     World w;
 
-    Obj_File obj("obj/catoms_v2.obj");
+    Obj_File obj("obj/voiture-lowresolution_fixed.obj");
     w.create_world();
 
-    run(w);
+    print_xml(w);
 
     return 0;
 }

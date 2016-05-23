@@ -66,6 +66,7 @@ int World::point_in_polygon(Point p, Point v)
     bool new_intersection_point;
     int ret;
 
+    //v.print_point();
     for (int i = 0; i < polygons.size(); i++) {
         if (polygons[i]->contains_point(p)) {
             return 2;
@@ -80,6 +81,7 @@ int World::point_in_polygon(Point p, Point v)
             intersections++;
         }
     }
+    //cout << "Intersections = " << intersections << endl;
     return (intersections&1) ? 2 : 0; // odd number
 }
 

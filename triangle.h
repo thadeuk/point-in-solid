@@ -10,4 +10,5 @@ public:
     void print_points();
     bool is_in_border(const Point &);
     bool is_point_in_polygon(const Point &);
+    bool is_point_in_polygon2(const Point &);
 };

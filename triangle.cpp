@@ -28,7 +28,7 @@ Triangle::is_in_border(const Point &p)
 }
 
 bool
-Triangle::is_point_in_polygon(const Point &p)
+Triangle::is_point_in_polygon2(const Point &p)
 {
     Point v0 = *p3 - *p1;
     Point v1 = *p2 - *p1;
@@ -45,4 +45,25 @@ Triangle::is_point_in_polygon(const Point &p)
     double v = (dot00*dot12 - dot01*dot02)*invDenom;
     return (u >= 0) && (v >= 0) && (u + v < 1);
 }
+
+
+bool
+SameSide(const Point &p1, Point p2, Point a,  Point b)
+{
+    Point cp1 = (b-a)^(p1-a);
+    Point cp2 = (b-a)^(p2-a);
+    if (cp1*cp2 >= 0 ) return true;
+    return false;
+
+}
+
+bool
+Triangle::is_point_in_polygon(const Point &p)
+{
+    if (SameSide(p, *p1, *p2, *p3) && SameSide(p, *p2, *p1, *p3) && SameSide(p, *p3, *p1, *p2)) {
+        return true;
+    }
+    return false;
+}
+
 
