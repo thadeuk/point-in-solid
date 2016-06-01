@@ -12,12 +12,12 @@ Rectangle::Rectangle(int p1_idx, int p2_idx, int p3_idx, int p4_idx)
 }
 
 void
-Rectangle::print_points()
+Rectangle::print()
 {
-    p1->print_point();
-    p2->print_point();
-    p3->print_point();
-    p4->print_point();
+    p1->print();
+    p2->print();
+    p3->print();
+    p4->print();
 }
 
 

@@ -13,7 +13,7 @@ public:
     Point (double _x, double _y, double _z) : x(_x), y(_y), z(_z) {};
     Point() {};
 
-    void print_point() const;
+    void print() const;
     double dist(const Point&) const;
     bool are_collinear(const Point&, const Point&) const;
 

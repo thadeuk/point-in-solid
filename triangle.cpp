@@ -11,11 +11,11 @@ Triangle::Triangle(int p1_idx, int p2_idx, int p3_idx)
 }
 
 void
-Triangle::print_points()
+Triangle::print()
 {
-    p1->print_point();
-    p2->print_point();
-    p3->print_point();
+    p1->print();
+    p2->print();
+    p3->print();
 }
 
 /* Assume the point is inside the polygon */
@@ -28,7 +28,7 @@ Triangle::is_in_border(const Point &p)
 }
 
 bool
-Triangle::is_point_in_polygon2(const Point &p)
+Triangle::is_point_in_polygon(const Point &p)
 {
     Point v0 = *p3 - *p1;
     Point v1 = *p2 - *p1;
@@ -58,7 +58,7 @@ SameSide(const Point &p1, Point p2, Point a,  Point b)
 }
 
 bool
-Triangle::is_point_in_polygon(const Point &p)
+Triangle::is_point_in_polygon2(const Point &p)
 {
     if (SameSide(p, *p1, *p2, *p3) && SameSide(p, *p2, *p1, *p3) && SameSide(p, *p3, *p1, *p2)) {
         return true;

@@ -23,7 +23,7 @@ public:
     void normalize_points(double max_world);
     Point get_random_point();
 
-    int grid_max[3]; // x, y, z
-    int grid_min[3];
+    double grid_max[3]; // x, y, z
+    double grid_min[3];
 
 };

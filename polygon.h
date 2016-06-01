@@ -14,7 +14,7 @@ public:
     void get_normal();
     void print_normal();
 
-    virtual void print_points() = 0;
+    virtual void print() = 0;
 
     int ray_intersect(const Point &, const Point &);
     bool contains_point(const Point &);

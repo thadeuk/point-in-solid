@@ -23,7 +23,7 @@ double Point::operator *(Point &v)
     return x*v.x + y*v.y + z*v.z;
 }
 
-void Point::print_point() const
+void Point::print() const
 {
     printf("(%lf, %lf, %lf)\n", x, y, z);
 }

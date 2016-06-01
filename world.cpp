@@ -45,12 +45,12 @@ void World::create_world()
     grid_max[0] = grid_max[1] = grid_max[2] = -99999;
     grid_min[0] = grid_min[1] = grid_min[2] = 99999;
     for (int i = 0; i < points.size(); i++) {
-        grid_min[0] = min(grid_min[0], (int) points[i]->x);
-        grid_min[1] = min(grid_min[1], (int) points[i]->y);
-        grid_min[2] = min(grid_min[2], (int) points[i]->z);
-        grid_max[0] = max(grid_max[0], (int) points[i]->x);
-        grid_max[1] = max(grid_max[1], (int) points[i]->y);
-        grid_max[2] = max(grid_max[2], (int) points[i]->z);
+        grid_min[0] = min(grid_min[0], points[i]->x);
+        grid_min[1] = min(grid_min[1], points[i]->y);
+        grid_min[2] = min(grid_min[2], points[i]->z);
+        grid_max[0] = max(grid_max[0], points[i]->x);
+        grid_max[1] = max(grid_max[1], points[i]->y);
+        grid_max[2] = max(grid_max[2], points[i]->z);
     }
 }
 
@@ -77,7 +77,6 @@ int World::point_in_polygon(Point p, Point v)
             return 1;
         }
         if (ret == 2) {
-            //cout << "Triangle " << i << endl;
             intersections++;
         }
     }
